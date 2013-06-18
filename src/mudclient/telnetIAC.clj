@@ -1,98 +1,120 @@
 (ns mudclient.telnetIAC)
 
-(def IAC 
+(def iac 
   {
-   :IAC 255
-   :DONT 254
-   :DO 253
-   :WONT 252
-   :WILL 251
-   :SB 250
-   :GA 249
-   :EL 248
-   :EC 247
-   :AYT 246
-   :AO 245
-   :IP 244
-   :BREAK 243
-   :DM 242
-   :NOP 241
-   :SE 240
-   :EOR 239   ;; Used for prompt marking 
-   :ABORT 238
-   :SUSP 237
-   :xEOF 236
+   :iac 255
+   :dont 254
+   :do 253
+   :wont 252
+   :will 251
+   :sb 250
+   :ga 249
+   :el 248
+   :ec 247
+   :ayt 246
+   :ao 245
+   :ip 244
+   :break 243
+   :dm 242
+   :nop 241
+   :se 240
+   :eor 239   ;; used for prompt marking 
+   :abort 238
+   :susp 237
+   :xeof 236
+   :telopt {
+            :binary 0
+            :echo 1  ;;echo
+            :rcp 2
+            :sga 3  ;;supress go ahead
+            :nams 4
+            :status 5
+            :timingmark 6
+            :rcte 7
+            :naol 8
+            :naop 9
+            :naocrd 10
+            :naohts 11
+            :naohtd 12
+            :naoffd 13
+            :naovts 14
+            :naovtd 15
+            :naolfd 16
+            :xascii 17
+            :logout 18
+            :bm 19
+            :det 20
+            :supdup 21
+            :supdupoutput 22
+            :sndloc 23
+            :ttype 24  ;;terminal type
+            :eor 25  ;;end of record
+            :tuid 26
+            :outmrk 27
+            :ttyloc 28
+            :3270regime 29
+            :x3pad 30
+            :naws 31  ;;negotiate about window size
+            :tspeed 32
+            :lflow 33
+            :linemode 34
+            :xdisploc 35
+            :old_environ 36
+            :auth 37
+            :encrypt 38
+            :new_environ 39
+            :starttls 46
+            :msdp 69  ;;mud server data protocol
+            :mssp 70  ;;mud server status protocol
+            :mccp1 85
+            :mccp2 86  ;;mud client compression protocol
+            :msp 90  ;;mud sound protocol
+            :mxp 91  ;;mud extention protocol
+            :zmp 93
+            :exopl 255
+            }
    })
 
+(defn- map-get-key
+  [map val]
+  (some #(if (= val (second %))
+           (first %)
+           nil)
+        map))
+(defn- uppercase-name
+  [s]
+  (when s
+    (.toUpperCase
+     (name s))))
+(defn iac-telopt-name
+  [code]
+  (uppercase-name
+    (map-get-key (:telopt iac) code)))
+(defn iac-cmd-name
+  [code]
+  (uppercase-name
+    (map-get-key iac code)))
 
-(def TELOPT
-  {
-   :BINARY 0
-   :ECHO 1  ;;Echo
-   :RCP 2
-   :SGA 3  ;;Supress Go Ahead
-   :NAMS 4
-   :STATUS 5
-   :TIMINGMARK 6
-   :RCTE 7
-   :NAOL 8
-   :NAOP 9
-   :NAOCRD 10
-   :NAOHTS 11
-   :NAOHTD 12
-   :NAOFFD 13
-   :NAOVTS 14
-   :NAOVTD 15
-   :NAOLFD 16
-   :XASCII 17
-   :LOGOUT 18
-   :BM 19
-   :DET 20
-   :SUPDUP 21
-   :SUPDUPOUTPUT 22
-   :SNDLOC 23
-   :TTYPE 24  ;;Terminal Type
-   :EOR 25  ;;End of Record
-   :TUID 26
-   :OUTMRK 27
-   :TTYLOC 28
-   :3270REGIME 29
-   :X3PAD 30
-   :NAWS 31  ;;Negotiate About Window Size
-   :TSPEED 32
-   :LFLOW 33
-   :LINEMODE 34
-   :XDISPLOC 35
-   :OLD_ENVIRON 36
-   :AUTH 37
-   :ENCRYPT 38
-   :NEW_ENVIRON 39
-   :STARTTLS 46
-   :MSDP 69  ;;Mud Server Data Protocol
-   :MSSP 70  ;;Mud Server Status Protocol
-   :MCCP1 85
-   :MCCP2 86  ;;Mud Client Compression Protocol
-   :MSP 90  ;;Mud Sound Protocol
-   :MXP 91  ;;Mud eXtention Protocol
-   :ZMP 93
-   :EXOPL 255
-   })
+(defn iac-code
+  "Finds the iac code for the passed in cmd
+   cmd can be either a keyword into iac, a list of keywords for each
+    level into iac, or a number, which is passed through unchanged"
+  [cmd]
+  (if (number? cmd)
+    cmd
+    ((if (coll? cmd)
+       get-in
+       get)
+     iac cmd)))
+(defn iac-char
+  [cmd]
+  (char (iac-code cmd)))
+(defn iac-cmd
+  [& elts]
+  (apply str (map iac-char elts)))
 
-
-(def ENV
-  {
-   :IS 0
-   :SEND 1
-   :INFO 2
-
-   :VAR 0
-   :VAL 1
-   :ESC 2 ;;Not implemented in tintin
-   :USR 3
-   })
-
-(def MSSP 
-  {
-   :VAR 1
-   :VAL 2
-   })
+(def cmd-responses
+  {(iac-code :do) {:affirm (iac-code :will)
+                   :reject (iac-code :wont)}
+   (iac-code :will) {:affirm (iac-code :do)
+                     :reject (iac-code :dont)}})

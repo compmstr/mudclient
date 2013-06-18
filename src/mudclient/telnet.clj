@@ -110,22 +110,33 @@
   [conn & cmd-elts]
   (write-string conn (apply iac/iac-cmd cmd-elts)))
 
+(defn write-naws
+  [conn]
+  ;;TODO - replace width/height with actual values
+  (write-iac-cmd conn :iac :sb [:telopt :naws] 80 24 :iac :se))
+
 (def iac-option-handlers
+  "Handlers for different IAC options
+   keys:
+    :start - when we receive IAC SB <command>
+    :negotiate - when we negotiate for the command"
   {(iac/iac-char [:telopt :mccp2])
    {:start #(update-in % [:socket] mccp2-input)
     :stop #(update-in % [:socket] plain-input)}
+   (iac/iac-char [:telopt :naws])
+   {:negotiate write-naws}
    })
 (defn handle-iac-dowill
   [conn]
   (let [[cmd opt] (rest (:buffer conn))]
-    (if-let [handler (iac-option-handlers opt)]
-      (-> conn
-          (handler)
-          (consume-from-buffer 3)
-          (write-iac-cmd :iac (iac/cmd-responses cmd :affirm) opt))
-      (-> conn
-          (consume-from-buffer 3)
-          (write-iac-cmd :iac (iac/cmd-responses cmd :reject) opt)))))
+    (-> conn
+        (consume-from-buffer 3)
+        (write-iac-cmd 
+         :iac 
+         (iac/cmd-responses cmd
+                            (if (iac-option-handlers opt) :affirm :reject))
+         opt))))
+
 (defn handle-iac-sb
   [conn])
 (defn handle-iac-wontdont

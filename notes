@@ -1,2 +1,7 @@
 commons.apache.org
 net -- telnet api
+
+setting up a simple file echo server with netcat
+	ex: can put a telnet session into a file, and have it echo on connect
+			can do this to help with testing telnet IAC negotiations
+				nc -l -p <port> -c "cat <filename>"

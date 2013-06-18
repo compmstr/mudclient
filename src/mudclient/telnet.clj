@@ -1,7 +1,8 @@
 (ns mudclient.telnet
   (require [mudclient.telnetIAC :as IAC])
   (import [java.io DataOutputStream DataInputStream]
-          [java.net Socket InetSocketAddress]))
+          [java.net Socket InetSocketAddress]
+          [java.util.zip GZIPInputStream GZIPOutputStream]))
 
 (def ^:dynamic *telnet-timeout* 5000)
 
@@ -74,3 +75,25 @@
     (.write (:out (:socket conn))
             buf
             0 (count buf))))
+
+(defn start-mccp2
+  [conn]
+  (if (= :plain (:mode (:socket conn)))
+    (-> conn
+        (assoc :mode :mccp2)
+        (update-in [:socket :in] #(GZIPInputStream. %))
+        (update-in [:socket :out] #(GZIPOutputStream. %)))
+    (do 
+      (println "Error: telnet mode is not plain when trying to switch to mccp2")
+      conn)))
+        
+(defn stop-mccp2
+  [conn]
+  (if (= :mccp2 (:mode (:socket conn)))
+    (-> conn
+        (assoc :mode :plain)
+        (update-in [:socket :in] #(DataInputStream. %))
+        (update-in [:socket :out] #(DataOutputStream. %)))
+    (do
+      (println "Error: telnet mode is not mccp2 when trying to switch from mccp2")
+      conn)))

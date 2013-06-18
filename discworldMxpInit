@@ -1,0 +1,55 @@
+<!-- Elements to support mxp. -->
+<!EL RName '<FONT COLOR=Red><B>' FLAG="RoomName">
+<!EL RDesc FLAG='RoomDesc'>
+<!EL RExits '<FONT COLOR=Blue>' FLAG='RoomExit'>
+<!EL RoomName FLAG="RoomName">
+<!EL RoomDesc FLAG="RoomDesc">
+<!EL RoomExits FLAG="RoomExit">
+<!EL Exit '<SEND EXPIRE="Exits">'>
+<!EL fixed '<Font fixed>'>
+<!EL proportional '<Font proportional>'>
+<!EL Reset '<Font default>'>
+<!EL Red '<C red>'>
+<!EL Black '<C black>'>
+<!EL White '<C white>'>
+<!EL Yellow '<C yellow>'>
+<!EL Cyan '<C cyan>'>
+<!EL Blue '<C blue>'>
+<!EL Magenta '<C magenta>'>
+<!EL Orange '<C orange>'>
+<!EL Green '<C green>'>
+<!EL B_Red '<C back=red>'>
+<!EL B_Black '<C back=black>'>
+<!EL B_White '<C back=white>'>
+<!EL B_Yellow '<C back=yellow>'>
+<!EL B_Cyan '<C back=cyan>'>
+<!EL B_Blue '<C back=blue>'>
+<!EL B_Magenta '<C back=magenta>'>
+<!EL B_Orange '<C back=orange>'>
+<!EL B_Green '<C back=green>'>
+<!EL Reverse '<C reverse>'>
+<!EL url '<a href=&text;>'>
+<!EL talker '<send href="&text; " prompt>'>
+<!EL club '<send href="&club; talk |&club; emote |&club; history" prompt hint="Right click for menu|&club; talk|&club; emote|&club; history">'>
+<!EL livingpopup '<send href="look &ob;|nod &ob; |smile &ob; |bing &ob; |finger &ob;|refer &ob;|consider &ob;|protect &ob;|pursue &ob;|follow &ob;|lose &ob;|defend &ob;|coverage on &ob;|kill &ob;|custom1 &ob;|custom2 &ob;" hint="Right click for menu">'>
+<!EL floorobjectpopup '<send href="look &ob;|get &ob;|drag &ob;" PROMPT hint="Right click for menu|look &ob;|get &ob;|drag &ob;">'>
+<!EL invobjectpopup '<send href="look &ob;|drop &ob;|weigh &ob;|give &ob; to |read &ob;|condition &ob;" PROMPT hint="Right click for menu|look &ob;|drop &ob;|weigh &ob;|give &ob; to |read &ob;|condition &ob;">'>
+<!EL boardobjectpopup '<send href="look board|subjects|read" hint="Right click for menu">'>
+<!EL boardnotenumpopup '<send href="read &text;|eat &text;|followup &text;|reply &text" hint="Right click for menu">'>
+<!EL shopit '<send href="buy &text;|browse &text;" hint="Right click for menu|buy &text;|browse &text;">'>
+<!EL shopcat '<send href="list &text;">'>
+<!-- Basic variables used for events -->
+<!-- var prints to the screen!! -->
+<!EN clubnames "unknown">
+<!EN channels "newbie|newbiehelpers|groups">
+<!EN groupcmds "follow|chat|assist|status|history|report|shields|list|members|leave|join">
+<!EN talkerchannels "one|two">
+<!EN informtype "login|birthday">
+<!-- Some stuff to get what the system supports back --><SUPPORT>
+<!-- Status bar items -->
+<!EN hp 0 publish>
+<!EN maxhp 0 publish>
+<!EN gp 0 publish>
+<!EN maxgp 0 publish>
+<!EN xp 0 publish><STAT hp max=maxhp caption="hp"><STAT gp max=maxgp caption="gp"><STAT sp max=maxsp caption="sp"><STAT xp caption="xp"><STAT burden caption="burden">
+<!entity guilds "Hublandish Barbarians|Duchess Saturday's Musketeers|Ankh-Morpork Palace Guard|Samurai|Hunters|Klatchian Foreign Legion|Lancre Highland Regiment|Weapon Masters' Court|Imperial Guard|Djelian Guard|Thief|Witch|Priest|Assassin|Hashishim|Mano Rossa|Ninja|Wizards">

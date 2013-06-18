@@ -1,0 +1,81 @@
+RCVD IAC DO TTYPE
+SENT IAC WILL TTYPE
+LPmud version : FluffOS v2.20-valground on port 4242.
+RCVD IAC DO NAWS
+SENT IAC WILL NAWS
+SENT IAC SB NAWS 0 80 0 57
+RCVD IAC WILL MCCP2
+SENT IAC DO MCCP2
+RCVD IAC DO MXP
+SENT IAC WONT MXP
+RCVD IAC WILL MSSP
+SENT IAC DO MSSP
+RCVD IAC WILL ZMP
+SENT IAC DONT ZMP
+RCVD IAC DO NEW-ENVIRON
+SENT IAC WONT NEW-ENVIRON
+Welcome to Discworld: the stuff of which dreams are made.
+
+Silently, slowly and surely, Great A'Tuin paddles through space, its
+great eyes surveying the dark, empty wastes before and behind it.
+Standing on A'Tuin's great back are four enormous elephants, straining
+under the colossal weight of the Discworld itself.  It sparkles with
+magic, reflects the light of the stars and generally fails to be as
+unobtrusive as possible.
+
+Q - Quit
+M - Print this menu again
+D - Delete your character
+R - Request a temporary password
+U - Short list of who is on-line
+L - Short list of liaisons on-line
+P - Uptime
+F - Finger someone
+N - New character
+G - Guest character
+
+Or, enter your current character's name
+
+
+RCVD IAC SB TTYPE
+SENT IAC SB TTYPE TINTIN++
+RCVD IAC SB MCCP2
+MCCP INITIALIZED.
+RCVD IAC SB MSSP
+MSSP VAR NAME                 VAL Discworld
+MSSP VAR PLAYERS              VAL 153
+MSSP VAR UPTIME               VAL 1278035183l
+MSSP VAR WORLDS               VAL 1
+MSSP VAR FAMILY               VAL LPMud
+MSSP VAR IP                   VAL 82.68.167.69
+MSSP VAR ROLEPLAYING          VAL Accepted
+MSSP VAR CREATED              VAL 1991
+MSSP VAR PAY TO PLAY          VAL 0
+MSSP VAR PAY FOR PERKS        VAL 0
+MSSP VAR PORT                 VAL 23
+MSSP VAR PORT                 VAL 4242
+MSSP VAR WORLD ORIGINALITY    VAL All Original
+MSSP VAR TRAINING SYSTEM      VAL Both
+MSSP VAR LOCATION             VAL United Kingdom
+MSSP VAR STATUS               VAL Live
+MSSP VAR CODEBASE             VAL Discworld lib (current)
+MSSP VAR MXP                  VAL 1
+MSSP VAR MULTIPLAYING         VAL None
+MSSP VAR WEBSITE              VAL http://discworld.atuin.net
+MSSP VAR INTERMUD             VAL IMC2
+MSSP VAR INTERMUD             VAL I3
+MSSP VAR PLAYERKILLING        VAL Restricted
+MSSP VAR HOSTNAME             VAL discworld6.obsidian.org.uk
+MSSP VAR HOSTNAME             VAL discworld.atuin.net
+MSSP VAR GENRE                VAL Fantasy
+MSSP VAR GAMEPLAY             VAL Roleplaying
+MSSP VAR GAMEPLAY             VAL Player versus Player
+MSSP VAR GAMEPLAY             VAL Hack and Slash
+MSSP VAR GAMEPLAY             VAL Adventure
+MSSP VAR LANGUAGE             VAL English
+MSSP VAR VT100                VAL 1
+MSSP VAR MCCP                 VAL 1
+MSSP VAR ANSI                 VAL 1
+MSSP VAR SUBGENRE             VAL Discworld
+IAC SB MSSP IAC SE
+

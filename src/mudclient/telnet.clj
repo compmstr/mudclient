@@ -66,12 +66,41 @@
         (.printStackTrace e)
         nil))))
 
+;;Capabilities have differing events that they react to---
+;;  things like an IAC request coming in, or new data being read
+;;  so the handler has keys for those events (:iac/:data/etc), each of which handles
+;;  their particular event, being passed the connection
+;;  if a capability is available, but disabled, only the :iac event is used
+(defn- add-capability
+  [conn name handler]
+  (update-in conn [:capabilities] assoc (iac/iac-char [:telopt name] handler)))
+
+(defn mccp2-on-iac
+  [conn])
+
+(defn mccp2-on-data
+  [conn])
+
+(defn add-mccp2
+  [conn]
+  (add-capability conn :mccp2 {:iac mccp2-on-iac
+                               :data mccp2-on-data}))
+
+(defn naws-on-iac
+  [conn])
+
+(defn add-naws
+  [conn]
+  (add-capability conn :naws {:iac naws-on-iac}))
+
 (defn connect
   [host port]
   (if-let [sock (-> (get-socket host port)
                     (plain-input))]
     {:host host
      :port port
+     :capabilities {} ;;map of :telopt option -> input handlers
+     :modes [:plain] ;;curently active capabilities
      :socket sock
      :buffer ""}
     (println "Error connecting")))
@@ -101,7 +130,8 @@
   (let [buf (.getBytes s)]
     (.write (:out (:socket conn))
             buf
-            0 (count buf))))
+            0 (count buf))
+    conn))
 
 (defn consume-from-buffer
   [conn n]
@@ -126,25 +156,23 @@
    (iac/iac-char [:telopt :naws])
    {:negotiate write-naws}
    })
+
 (defn handle-iac-dowill
   [conn]
-  (let [[cmd opt] (rest (:buffer conn))]
+  (let [[cmd opt] (rest (:buffer conn))
+        handler (opt (:capabilities conn))]
     (-> conn
         (consume-from-buffer 3)
-        (write-iac-cmd 
-         :iac 
-         (iac/cmd-responses cmd
-                            (if (iac-option-handlers opt) :affirm :reject))
-         opt))))
+        (write-iac-cmd :iac 
+                       (iac/cmd-responses cmd (if handler :affirm :reject))
+                       opt))))
 
-(defn handle-iac-sb
-  [conn])
+    
 (defn handle-iac-wontdont
-  [conn])
-(defn handle-iac-ga
-  [conn])
+  [conn]
+  (consume-from-buffer conn 3))
 
-(defn handle-iac-cmds
+(defn handle-iac
   [conn]
   (let [buf (:buffer conn)]
     (if (= (iac/iac-char :iac) (first buf))
@@ -152,12 +180,8 @@
         (cond
          (or (= cmd (iac/iac-char :do))
              (= cmd (iac/iac-char :will)))
-          (handle-iac-dowill conn)
-         (= cmd (iac/iac-char :sb))
-          (handle-iac-sb conn)
+         (handle-iac-dowill conn)
          (or (= cmd (iac/iac-char :wont))
              (= cmd (iac/iac-char :dont)))
-          (handle-iac-wontdont conn)
-         (= cmd (iac/iac-char :ga))
-          (handle-iac-ga conn)))
+         (handle-iac-wontdont conn)))
       conn)))

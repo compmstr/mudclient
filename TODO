@@ -1,3 +1,4 @@
 Find cleaner way to specify different protocol options
   mainly different states that start on either negotiation or another call
   ex: different between NAWS and MCCP2
+

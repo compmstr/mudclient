@@ -113,8 +113,27 @@
   [& elts]
   (apply str (map iac-char elts)))
 
+(defn iac-subnegotiation
+  [& subneg]
+  (apply iac-cmd (concat [:iac :sb] subneg [:iac :se])))
+(defn iac-negotiation
+  [& cmd-elts]
+  (apply iac-cmd (concat [:iac] cmd-elts)))
+
 (def cmd-responses
   {(iac-code :do) {:affirm (iac-code :will)
                    :reject (iac-code :wont)}
    (iac-code :will) {:affirm (iac-code :do)
                      :reject (iac-code :dont)}})
+
+(defn get-iac-sb
+  "Gets an entire subnegotiation from the stream returning
+   [conn data] -- with data being nil if there is no complete subnegotiation
+   in the buffer, either buffer doesn't start with IAC SB, or doesn't end with IAC SE"
+  [conn]
+  (if (= [(iac-code :iac) (iac-code :sb)] (take 2 (:buffer conn)))
+    (loop [buf (drop 2(:buffer conn))
+           acc []]
+      ;;TODO - loop through looking for IAC SE, and return the data between IAC SB and IAC SE as data
+      )
+    [conn nil]))

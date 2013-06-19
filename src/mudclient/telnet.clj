@@ -35,8 +35,8 @@
       socket)
     (-> socket
         (assoc :mode :plain)
-        (update-in [:in] #(DataInputStream. %))
-        (update-in [:out] #(DataOutputStream. %)))))
+        (update-in [:in] #(DataInputStream. (.getInputStream (:socket %))))
+        (update-in [:out] #(DataOutputStream. (.getOutputStream (:socket %)))))))
 
 (defn mccp2-input
   "Sets a socket to receive zlib encoded text (MCCP2)"

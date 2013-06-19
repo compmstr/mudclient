@@ -147,15 +147,17 @@
 (defn handle-iac-cmds
   [conn]
   (let [buf (:buffer conn)]
-    (if (= (IAC/iac-char :iac) (first buf))
+    (if (= (iac/iac-char :iac) (first buf))
       (let [cmd (second buf)]
-        (case cmd
-          [(iac/iac-char :do) (iac/iac-char :will)]
-            (handle-iac-dowill conn)
-          (iac/iac-char :sb)
-            (handle-iac-sb conn)
-          [(iac/iac-char :wont) (iac/iac-char :dont)]
-            (handle-iac-wontdont conn)
-          (iac/iac-char :ga)
-            (handle-iac-ga conn)))
+        (cond
+         (or (= cmd (iac/iac-char :do))
+             (= cmd (iac/iac-char :will)))
+          (handle-iac-dowill conn)
+         (= cmd (iac/iac-char :sb))
+          (handle-iac-sb conn)
+         (or (= cmd (iac/iac-char :wont))
+             (= cmd (iac/iac-char :dont)))
+          (handle-iac-wontdont conn)
+         (= cmd (iac/iac-char :ga))
+          (handle-iac-ga conn)))
       conn)))

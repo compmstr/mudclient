@@ -18,6 +18,9 @@
   [c]
   (short (char c)))
 
+(defn connected?
+  [conn]
+  (.isConnected (:socket (:socket conn))))
 (defn disconnect
   [conn]
   (try
@@ -94,11 +97,13 @@
   [conn]
   (let [[new-data eos?] (read-chunk conn)
         conn (if eos?
-               (run-conn-hook conn :eos)
+               (-> conn
+                (assoc :eos true)
+                (run-conn-hook :eos))
                conn)]
     (-> conn
         (update-in [:buffer] #(apply str % new-data))
-        (run-conn-hook :data))))
+        (run-conn-hook :data new-data))))
 
 (defn write-string
   [conn s]
@@ -115,11 +120,12 @@
 (defn handle-iac-dowill
   [conn]
   (let [[cmd opt] (rest (:buffer conn))
-        handler (opt (:capabilities conn))]
+        handler ((:capabilities conn) opt)
+        neg-hook-handler #(if-let [neg-hook (:neg handler)] (neg-hook %) %)]
     (-> conn
         (consume-from-buffer 3)
-        (write-string (iac/iac-negotiation (iac/cmd-responses cmd (if handler :affirm :reject)) opt))
-        #(if-let [neg-hook (:neg handler)] (neg-hook %) %))))
+        (write-string (iac/iac-neg (iac/cmd-responses cmd (if handler :affirm :reject)) opt))
+        (neg-hook-handler))))
 
 (defn handle-iac-wontdont
   [conn]
@@ -144,12 +150,11 @@
   [socket]
   (if (= :plain (:mode socket))
     (do
-      (println "Error: telnet connection already in plain mode")
       socket)
     (-> socket
         (assoc :mode :plain)
-        (update-in [:in] #(DataInputStream. (.getInputStream (:socket %))))
-        (update-in [:out] #(DataOutputStream. (.getOutputStream (:socket %)))))))
+        (update-in [:in] (fn [_] (DataInputStream. (.getInputStream (:socket socket)))))
+        (update-in [:out] (fn [_] (DataOutputStream. (.getOutputStream (:socket socket))))))))
 
 (defn mccp2-input
   "Sets a socket to receive zlib encoded text (MCCP2)"
@@ -164,7 +169,6 @@
         (println "Error initializing MCCP2:")
         (.printStackTrace e)))
     (do 
-      (println "Error: telnet mode is not plain when trying to switch to mccp2")
       socket)))
 
 ;;Capabilities have differing events that they react to---
@@ -178,28 +182,45 @@
 ;;      read -- number of chars read, or -1 if end of stream
 ;;  :subneg -- when the subnegotiation for this option is recieved
 ;;  :neg -- right after negotiation (WILL/DO) finishes
+;;  :eos -- end of stream
 
 (defn mccp2-subneg
   [conn]
   ;;Turn on mccp2
   (update-in conn [:socket] mccp2-input))
 
-(defn mccp2-data
-  [conn read]
-  (if (= -1 read) ;;mccp is being turned off, revert to plain input
-    (update-in conn [:socket] plain-input)
+(defn mccp2-eos
+  [conn]
+  (if (= :mccp2 (:mode conn))
+    (-> conn
+        (dissoc :eos)
+        (update-in [:socket] plain-input))
     conn))
 
 (defn add-mccp2
   [conn]
   (add-capability conn :mccp2 {:subneg mccp2-subneg
-                               :data mccp2-data}))
+                               :eos mccp2-eos}))
 
-(defn naws-neg
+(defn naws-subneg
   [conn]
   ;;TODO - replace width/height with actual values
-  (write-string conn (iac/iac-subnegotiation [:telopt :naws] 80 24)))
+  (write-string conn (iac/iac-subneg [:telopt :naws] 80 24)))
 
 (defn add-naws
   [conn]
   (add-capability conn :naws {:neg naws-subneg}))
+
+(defn ttype-subneg
+  [conn]
+  (write-string conn (iac/iac-subneg [:telopt :ttype] "clojure-mudclient")))
+
+
+(defn add-ttype
+  [conn]
+  (add-capability conn :ttype {:subneg ttype-subneg}))
+
+(defn add-test-capability
+  [conn]
+  (add-capability conn :naop {:eos (fn [c] (println "End of stream") c)
+                              :data (fn [c data] (println "New data..." (apply str data)) c)}))

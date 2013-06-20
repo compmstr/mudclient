@@ -113,10 +113,10 @@
   [& elts]
   (apply str (map iac-char elts)))
 
-(defn iac-subnegotiation
+(defn iac-subneg
   [& subneg]
   (apply iac-cmd (concat [:iac :sb] subneg [:iac :se])))
-(defn iac-negotiation
+(defn iac-neg
   [& cmd-elts]
   (apply iac-cmd (concat [:iac] cmd-elts)))
 

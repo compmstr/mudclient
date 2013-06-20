@@ -55,26 +55,50 @@
      :buffer ""}
     (println "Error connecting")))
 
+(defn run-conn-hook
+  "Run the specified hook of any capabilities on the provided connection
+   passing in the connection, and any specified arguments"
+  [conn hook & args]
+  (let [hooks (filter hook (vals (:capabilities conn)))]
+    (loop [conn conn
+           hooks hooks]
+      (if (empty? hooks)
+        conn
+        (recur (apply ((first hooks) hook) conn args)
+               (rest hooks))))))
+
+;;(def tmp {:capabilities 
+;;          {:mccp {:foo (fn [conn] (println "mccp foo") conn) :bar (fn [conn] (println "mccp bar") conn)}
+;;           :naws {:foo (fn [conn] (println "naws foo") conn) :baz (fn [conn arg] (println "naws baz - " arg) conn)}
+;;           :haha {:bar (fn [conn] (println "haha bar") conn)}}})
+;;(run-conn-hook tmp :foo)
+;;(run-conn-hook tmp :bar)
+;;(run-conn-hook tmp :baz :the-arg)
+
 (defn disconnect
   [con]
   (doall (map #(.close ((:socket con) %)) [:socket :in :out])))
 
-;;TODO -- update this to return [conn read]
-(defn read-bytes
+(defn read-chunk
+  "Reads a chunk of data from the connection, returning
+   [<data as string> <end of stream?>]"
   [conn]
-  (let [buf (byte-array 256)]
-    (loop [acc ()
-           read (.read (:in (:socket conn)) buf 0 256)]
-      (if (< read 0)
-        acc
-        (recur
-         (concat acc (doall (map byte->ubyte (seq buf))))
-         (.read (:in (:socket conn)) buf 0 256))))))
+  (let [buf-size 128
+        buf (byte-array buf-size)
+        read (.read (:in (:socket conn)) buf 0 buf-size)]
+    [(doall (map (comp char byte->ubyte) (seq buf))) (= -1 read)]))
 
-(defn read-conn-data
+(defn read-next-chunk
+  "Reads next chunk of data from connection, and adds it to the buffer
+   calls :eos and :data hooks"
   [conn]
-  (let [new-data (map (comp char byte->ubyte) (read-bytes conn))]
-    (update-in conn [:buffer] #(apply str % new-data))))
+  (let [[new-data eos?] (read-chunk conn)
+        conn (if eos?
+               (run-conn-hook conn :eos)
+               conn)]
+    (-> conn
+        (update-in [:buffer] #(apply str % new-data))
+        (run-conn-hook :data))))
 
 (defn write-string
   [conn s]
@@ -94,7 +118,8 @@
         handler (opt (:capabilities conn))]
     (-> conn
         (consume-from-buffer 3)
-        (write-string (iac/iac-negotiation (iac/cmd-responses cmd (if handler :affirm :reject)) opt)))))
+        (write-string (iac/iac-negotiation (iac/cmd-responses cmd (if handler :affirm :reject)) opt))
+        #(if-let [neg-hook (:neg handler)] (neg-hook %) %))))
 
 (defn handle-iac-wontdont
   [conn]
@@ -152,6 +177,7 @@
 ;;  :data -- when data is read from the socket
 ;;      read -- number of chars read, or -1 if end of stream
 ;;  :subneg -- when the subnegotiation for this option is recieved
+;;  :neg -- right after negotiation (WILL/DO) finishes
 
 (defn mccp2-subneg
   [conn]
@@ -169,11 +195,11 @@
   (add-capability conn :mccp2 {:subneg mccp2-subneg
                                :data mccp2-data}))
 
-(defn naws-subneg
+(defn naws-neg
   [conn]
   ;;TODO - replace width/height with actual values
   (write-string conn (iac/iac-subnegotiation [:telopt :naws] 80 24)))
 
 (defn add-naws
   [conn]
-  (add-capability conn :naws {:subneg naws-subneg}))
+  (add-capability conn :naws {:neg naws-subneg}))

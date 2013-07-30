@@ -122,9 +122,10 @@
   (let [[cmd opt] (rest (:buffer conn))
         handler ((:capabilities conn) opt)
         neg-hook-handler #(if-let [neg-hook (:neg handler)] (neg-hook %) %)]
+    (println (format "Handling IAC dowill -- cmd: %d option: %d -- handler: %s" (int cmd) (int opt) handler))
     (-> conn
         (consume-from-buffer 3)
-        (write-string (iac/iac-neg (iac/cmd-responses cmd (if handler :affirm :reject)) opt))
+        (write-string (iac/iac-neg ((iac/cmd-responses (int cmd)) (if handler :affirm :reject)) (int opt)))
         (neg-hook-handler))))
 
 (defn handle-iac-wontdont

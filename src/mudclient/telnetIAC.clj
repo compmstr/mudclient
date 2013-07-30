@@ -108,7 +108,8 @@
      iac cmd)))
 (defn iac-char
   [cmd]
-  (char (iac-code cmd)))
+  (char (or (iac-code cmd)
+            cmd)))
 (defn iac-cmd
   [& elts]
   (apply str (map iac-char elts)))
